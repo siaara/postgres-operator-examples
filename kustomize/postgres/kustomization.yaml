@@ -1,4 +1,7 @@
 namespace: postgres-operator
 
 resources:
-- postgres.yaml
+- init-sql-config.yaml
+- postgres-dev.yaml
+# TODO estimate required resources
+# - postgres-prod.yaml

@@ -1,0 +1,50 @@
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: signal-data-dev
+spec:
+  image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi8-15.4-0
+  postgresVersion: 15
+  instances:
+    - name: timescaledb
+      replicas: 1
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+          ephemeral-storage: 512Mi
+        limits:
+          cpu: 250m
+          memory: 512Mi
+          ephemeral-storage: 512Mi
+      dataVolumeClaimSpec:
+        storageClassName: premium-rwo
+        accessModes:
+        - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: 64Gi
+          limits:
+            storage: 128Gi
+  # TODO configure backup
+  backups:
+    pgbackrest:
+      image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.47-0
+      repos:
+      - name: repo1
+        gcs:
+          bucket: backups-signal-data-dev-timescaledb-repo1
+      repoHost:
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+            ephemeral-storage: 512Mi
+  patroni:
+    dynamicConfiguration:
+      postgresql:
+        parameters:
+          shared_preload_libraries: timescaledb
+  databaseInitSQL:
+    key: init.sql
+    name: init-sql-config
